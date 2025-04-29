@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vokabel-Quiz: Lebensabschnitte</title>
+    <style>
+        :root {
+            --apple-background: #f5f5f7;
+            --apple-card: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            --apple-text: #1d1d1f;
+            --apple-accent: linear-gradient(to right, #0071e3, #00a1e6);
+            --apple-success: linear-gradient(to right, #34c759, #2dbb5f);
+            --apple-error: linear-gradient(to right, #ff3b30, #ff2d55);
+            --apple-neutral: #8e8e93;
+            --apple-shadow: rgba(0, 0, 0, 0.1);
+            --font-sf: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-sf);
+        }
+        
+        body {
+            background-color: var(--apple-background);
+            color: var(--apple-text);
+            line-height: 1.5;
+            padding: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        h1, h2, h3 {
+            font-weight: 600;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        h2 {
+            font-size: 24px;
+            margin: 24px 0 16px;
+        }
+        
+        h3 {
+            font-size: 20px;
+            margin: 16px 0 8px;
+        }
+        
+        p {
+            margin-bottom: 16px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+        
+        .card {
+            background-image: var(--apple-card);
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 24px var(--apple-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px var(--apple-shadow);
+        }
+        
+        .quiz-container {
+            display: none;
+        }
+        
+        .quiz-container.active {
+            display: block;
+        }
+        
+        .btn {
+            background-image: var(--apple-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+            margin: 8px 4px;
+            box-shadow: 0 2px 10px rgba(0, 113, 227, 0.3);
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 16px 0;
+        }
+        
+        .btn-secondary {
+            background: var(--apple-neutral);
+            box-shadow: 0 2px 10px rgba(142, 142, 147, 0.3);
+        }
+        
+        .btn-success {
+            background-image: var(--apple-success);
+            box-shadow: 0 2px 10px rgba(52, 199, 89, 0.3);
+        }
+        
+        .result {
+            font-weight: 500;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            text-align: center;
+        }
+        
+        .correct {
+            background-color: rgba(52, 199, 89, 0.2);
+            color: #2a9d4e;
+        }
+        
+        .incorrect {
+            background-color: rgba(255, 59, 48, 0.2);
+            color: #d92b2b;
+        }
+        
+        .quiz-progress {
+            background-color: #e5e5ea;
+            height: 8px;
+            border-radius: 4px;
+            margin: 24px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-image: var(--apple-accent);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .question-card {
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .score {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .flashcard {
+            height: 200px;
+            perspective: 1000px;
+            margin-bottom: 24px;
+        }
+        
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border-radius: 18px;
+            padding: 20px;
+            background-image: var(--apple-card);
+            box-shadow: 0 4px 24px var(--apple-shadow);
+        }
+        
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background-image: var(--apple-accent);
+            color: white;
+        }
+        
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 0 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background-image: var(--apple-accent);
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: rgba(0, 102, 204, 0.1);
+        }
+        
+        .list-view {
+            margin-bottom: 32px;
+        }
+        
+        .vocab-item {
+            padding: 16px;
+            border-bottom: 1px solid #e5e5ea;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .vocab-english {
+            font-weight: 500;
+        }
+        
+        .legal-footer {
+            margin-top: auto;
+            padding: 30px 0;
+            border-top: 1px solid #e5e5ea;
+        }
+        
+        .legal-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legal-links a {
+            color: var(--apple-neutral);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        
+        .legal-links a:hover {
+            color: var(--apple-text);
+        }
+        
+        .legal-content {
+            display: none;
+            background: var(--apple-card);
+            border-radius: 18px;
+            padding: 24px;
+            margin-top: 20px;
+            box-shadow: 0 4px 24px var(--apple-shadow);
+        }
+        
+        .legal-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin: 4px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Vokabel-Quiz: Lebensabschnitte</h1>
+        <p>Verbessere dein Englisch mit interaktiven Übungen im Apple-Design</p>
+    </div>
+    
+    <div class="tab-container">
+        <div class="tab active" onclick="switchTab(this, 'list-view')">Vokabelübersicht</div>
+        <div class="tab" onclick="switchTab(this, 'quiz-flashcards')">Karteikarten</div>
+        <div class="tab" onclick="switchTab(this, 'quiz-multiple-choice')">Quiz</div>
+        <div class="tab" onclick="switchTab(this, 'quiz-typing')">Schreibübung</div>
+    </div>
+    
+    <div id="list-view" class="quiz-container active">
+        <div class="card">
+            <h2>Vokabelübersicht</h2>
+            <p>Hier findest du alle 32 Vokabeln zum Thema "Lebensabschnitte und Erwachsenwerden"</p>
+            <div class="list-view" id="vocabulary-list"></div>
+        </div>
+    </div>
+    
+    <div id="quiz-flashcards" class="quiz-container">
+        <div class="card">
+            <h2>Karteikarten</h2>
+            <p>Klicke auf die Karte, um sie umzudrehen</p>
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front" id="flashcard-front"></div>
+                    <div class="flashcard-back" id="flashcard-back"></div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn" onclick="prevCard()">Vorherige</button>
+                <button class="btn" onclick="nextCard()">Nächste</button>
+                <button class="btn btn-secondary" onclick="shuffleCards()">Mischen</button>
+            </div>
+            <div class="score" id="flashcard-counter">Karte 1/32</div>
+        </div>
+    </div>
+    
+    <div id="quiz-multiple-choice" class="quiz-container">
+        <div class="card">
+            <h2>Multiple Choice Quiz</h2>
+            <div class="quiz-progress">
+                <div class="progress-bar" id="mc-progress-bar"></div>
+            </div>
+            <div class="score" id="mc-score">Punkte: 0/0</div>
+            <div class="question-card" id="mc-question-container">
+                <h3 id="mc-question">Frage wird geladen...</h3>
+                <div class="btn-group" id="mc-options"></div>
+                <div class="result" id="mc-result" style="display: none;"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn" id="mc-next" onclick="nextMCQuestion()">Nächste Frage</button>
+                <button class="btn btn-secondary" onclick="resetQuiz('multiple-choice')">Quiz neu starten</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="quiz-typing" class="quiz-container">
+        <div class="card">
+            <h2>Schreibübung</h2>
+            <div class="quiz-progress">
+                <div class="progress-bar" id="typing-progress-bar"></div>
+            </div>
+            <div class="score" id="typing-score">Punkte: 0/0</div>
+            <div class="question-card">
+                <h3 id="typing-prompt">Prompt wird geladen...</h3>
+                <p id="typing-direction">Übersetze ins Englische:</p>
+                <input type="text" id="typing-input" class="form-control" style="width: 100%; padding: 12px; margin: 16px 0; border-radius: 8px; border: 1px solid #c7c7cc; font-size: 16px;" placeholder="Deine Antwort...">
+                <div class="result" id="typing-result" style="display: none;"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn" id="typing-check" onclick="checkTypingAnswer()">Überprüfen</button>
+                <button class="btn" id="typing-next" onclick="nextTypingQuestion()" style="display: none;">Nächste Frage</button>
+                <button class="btn btn-secondary" onclick="resetQuiz('typing')">Quiz neu starten</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="legal-footer">
+        <div class="legal-links">
+            <a href="#" onclick="showLegal('impressum'); return false;">Impressum</a>
+            <a href="#" onclick="showLegal('datenschutz'); return false;">Datenschutz</a>
+        </div>
+        
+        <div id="impressum" class="legal-content">
+            <h2>Impressum</h2>
+            <p>Angaben gemäß § 5 TMG:</p>
+            <p>
+                Jonas Appenroth<br>
+                Magdelstieg 106<br>
+                07745 Jena<br>
+                E-Mail:Jonasappenroth@icloud.
+            </p>
+            <button class="btn btn-secondary" onclick="hideLegal()">Schließen</button>
+        </div>
+        
+        <div id="datenschutz" class="legal-content">
+            <h2>Datenschutzerklärung</h2>
+            <p>Diese Website:</p>
+            <ul style="margin-bottom: 16px; padding-left: 20px;">
+                <li>Verwendet keine Cookies</li>
+                <li>Erhebt keine personenbezogenen Daten</li>
+                <li>Verarbeitet alle Eingaben ausschließlich lokal in Ihrem Browser</li>
+                <li>Verwendet keine Tracking-Technologien</li>
+            </ul>
+            <button class="btn btn-secondary" onclick="hideLegal()">Schließen</button>
+        </div>
+    </footer>
+
+    <script>
+    // Vokabeldaten
+    const vocabularyList = [
+        { english: "a stage of life", german: "ein Lebensabschnitt" },
+        { english: "a period of transition", german: "eine Übergangszeit" },
+        { english: "to assert yourself", german: "sich durchsetzen" },
+        { english: "to plan for your future", german: "Pläne für die Zukunft machen" },
+        { english: "to play an active role", german: "eine aktive Rolle spielen" },
+        { english: "to come of age", german: "volljährig/mündig werden" },
+        { english: "to have rights and responsibilities", german: "Rechte und Pflichten haben" },
+        { english: "to become independent", german: "selbstständig werden" },
+        { english: "to gain acceptance", german: "Anerkennung finden" },
+        { english: "a peer group", german: "eine Peergruppe" },
+        { english: "peer pressure", german: "Gruppenzwang" },
+        { english: "self-confident", german: "selbstbewusst" },
+        { english: "self-conscious", german: "gehemmt" },
+        { english: "popularity", german: "Beliebtheit" },
+        { english: "to be exposed to influences", german: "Einflüssen ausgesetzt sein" },
+        { english: "under pressure", german: "unter Druck" },
+        { english: "to meet your parents' expectations", german: "die Erwartungen der Eltern erfüllen" },
+        { english: "to gain admission to a university", german: "eine Studienplatzzusage bekommen" },
+        { english: "to give serious consideration to one's future", german: "sich ernsthaft mit der Zukunft befassen" },
+        { english: "to submit to the pressure to conform", german: "sich dem Anpassungsdruck beugen" },
+        { english: "to strive hard", german: "sich sehr bemühen" },
+        { english: "to reach your personal goals", german: "persönliche Ziele erreichen" },
+        { english: "to take risks", german: "Risiken eingehen" },
+        { english: "to test your limits", german: "die eigenen Grenzen austesten" },
+        { english: "a role model", german: "ein Vorbild" },
+        { english: "to search for your identity", german: "die eigene Identität suchen" },
+        { english: "to tend to experiment", german: "zum Ausprobieren neigen" },
+        { english: "appearance", german: "Aussehen" },
+        { english: "to rebel against sth.", german: "sich gegen etwas auflehnen" },
+        { english: "the social environment", german: "das soziale Umfeld" },
+        { english: "provocative", german: "provokativ" },
+        { english: "to yearn for security", german: "sich nach Sicherheit sehnen" }
+    ];
+
+    // Hilfsfunktion zum Mischen von Arrays
+    function shuffleArray(array) {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
+    }
+    
+    // Tab-Wechsel Funktion
+    function switchTab(tab, containerId) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        document.querySelectorAll('.quiz-container').forEach(c => c.classList.remove('active'));
+        document.getElementById(containerId).classList.add('active');
+        
+        if (containerId === 'quiz-multiple-choice') {
+            resetQuiz('multiple-choice');
+        } else if (containerId === 'quiz-typing') {
+            resetQuiz('typing');
+        } else if (containerId === 'quiz-flashcards') {
+            currentCardIndex = 0;
+            updateFlashcard();
+        }
+    }
+
+    // Vokabelliste anzeigen
+    function displayVocabularyList() {
+        const listContainer = document.getElementById('vocabulary-list');
+        listContainer.innerHTML = '';
+        
+        vocabularyList.forEach(item => {
+            const vocabItem = document.createElement('div');
+            vocabItem.className = 'vocab-item';
+            vocabItem.innerHTML = `
+                <span class="vocab-english">${item.english}</span>
+                <span class="vocab-german">${item.german}</span>
+            `;
+            listContainer.appendChild(vocabItem);
+        });
+    }
+
+    // Karteikarten
+    let flashcards = [];
+    let currentCardIndex = 0;
+    
+    function setupFlashcards() {
+        flashcards = shuffleArray([...vocabularyList]);
+        currentCardIndex = 0;
+        updateFlashcard();
+    }
+    
+    function updateFlashcard() {
+        const card = flashcards[currentCardIndex];
+        document.getElementById('flashcard-front').textContent = card.english;
+        document.getElementById('flashcard-back').textContent = card.german;
+        document.getElementById('flashcard-counter').textContent = `Karte ${currentCardIndex + 1}/${flashcards.length}`;
+        document.getElementById('flashcard').classList.remove('flipped');
+    }
+    
+    function flipCard() {
+        document.getElementById('flashcard').classList.toggle('flipped');
+    }
+    
+    function nextCard() {
+        currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+        updateFlashcard();
+    }
+    
+    function prevCard() {
+        currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+        updateFlashcard();
+    }
+    
+    function shuffleCards() {
+        flashcards = shuffleArray(flashcards);
+        currentCardIndex = 0;
+        updateFlashcard();
+    }
+
+    // Multiple Choice Quiz
+    let mcQuestions = [];
+    let currentMCQuestion = 0;
+    let mcScore = 0;
+    
+    function createMultipleChoiceQuestions() {
+        mcQuestions = [];
+        
+        vocabularyList.forEach(item => {
+            const wrongAnswers = vocabularyList
+                .filter(wrong => wrong.german !== item.german)
+                .map(wrong => wrong.german);
+            
+            const shuffledWrong = shuffleArray(wrongAnswers).slice(0, 3);
+            
+            mcQuestions.push({
+                question: `Was bedeutet "${item.english}"?`,
+                correctAnswer: item.german,
+                options: shuffleArray([...shuffledWrong, item.german]),
+                answered: false,
+                direction: 'en-de'
+            });
+        });
+        
+        vocabularyList.forEach(item => {
+            const wrongAnswers = vocabularyList
+                .filter(wrong => wrong.english !== item.english)
+                .map(wrong => wrong.english);
+            
+            const shuffledWrong = shuffleArray(wrongAnswers).slice(0, 3);
+            
+            mcQuestions.push({
+                question: `Wie sagt man "${item.german}" auf Englisch?`,
+                correctAnswer: item.english,
+                options: shuffleArray([...shuffledWrong, item.english]),
+                answered: false,
+                direction: 'de-en'
+            });
+        });
+        
+        mcQuestions = shuffleArray(mcQuestions);
+    }
+    
+    function displayMCQuestion() {
+        const question = mcQuestions[currentMCQuestion];
+        document.getElementById('mc-question').textContent = question.question;
+        
+        const optionsContainer = document.getElementById('mc-options');
+        optionsContainer.innerHTML = '';
+        
+        question.options.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'btn';
+            button.textContent = option;
+            button.onclick = () => checkMCAnswer(option);
+            optionsContainer.appendChild(button);
+        });
+        
+        document.getElementById('mc-result').style.display = 'none';
+        const progress = ((currentMCQuestion) / mcQuestions.length) * 100;
+        document.getElementById('mc-progress-bar').style.width = `${progress}%`;
+        document.getElementById('mc-score').textContent = `Punkte: ${mcScore}/${currentMCQuestion}`;
+    }
+    
+    function checkMCAnswer(selectedAnswer) {
+        if (mcQuestions[currentMCQuestion].answered) return;
+        
+        const question = mcQuestions[currentMCQuestion];
+        const resultElement = document.getElementById('mc-result');
+        
+        if (selectedAnswer === question.correctAnswer) {
+            resultElement.textContent = 'Richtig!';
+            resultElement.className = 'result correct';
+            mcScore++;
+        } else {
+            resultElement.textContent = `Falsch. Die richtige Antwort ist: ${question.correctAnswer}`;
+            resultElement.className = 'result incorrect';
+        }
+        
+        const buttons = document.querySelectorAll('#mc-options .btn');
+        buttons.forEach(button => {
+            if (button.textContent === question.correctAnswer) {
+                button.classList.add('btn-success');
+            }
+            button.disabled = true;
+            button.style.opacity = '0.7';
+        });
+        
+        resultElement.style.display = 'block';
+        question.answered = true;
+        document.getElementById('mc-score').textContent = `Punkte: ${mcScore}/${currentMCQuestion + 1}`;
+    }
+    
+    function nextMCQuestion() {
+        currentMCQuestion++;
+        
+        if (currentMCQuestion < mcQuestions.length) {
+            displayMCQuestion();
+        } else {
+            const container = document.getElementById('mc-question-container');
+            const scorePercentage = Math.round((mcScore / mcQuestions.length) * 100);
+            
+            container.innerHTML = `
+                <h3>Quiz beendet!</h3>
+                <p>Du hast ${mcScore} von ${mcQuestions.length} Fragen richtig beantwortet (${scorePercentage}%).</p>
+                <div class="btn-group">
+                    <button class="btn" onclick="resetQuiz('multiple-choice')">Quiz neu starten</button>
+                </div>
+            `;
+            
+            document.getElementById('mc-next').style.display = 'none';
+        }
+    }
+
+    // Schreibübung
+    let typingQuestions = [];
+    let currentTypingQuestion = 0;
+    let typingScore = 0;
+    
+    function createTypingQuestions() {
+        typingQuestions = [];
+        
+        vocabularyList.forEach(item => {
+            typingQuestions.push({
+                prompt: `Wie sagt man "${item.english}" auf Deutsch?`,
+                correctAnswer: item.german,
+                direction: 'en-de'
+            });
+        });
+        
+        vocabularyList.forEach(item => {
+            typingQuestions.push({
+                prompt: `Was bedeutet "${item.german}" auf Englisch?`,
+                correctAnswer: item.english,
+                direction: 'de-en'
+            });
+        });
+        
+        typingQuestions = shuffleArray(typingQuestions);
+    }
+    
+    function displayTypingQuestion() {
+        const question = typingQuestions[currentTypingQuestion];
+        document.getElementById('typing-prompt').textContent = question.prompt;
+        document.getElementById('typing-direction').textContent = question.direction === 'en-de' 
+            ? 'Übersetze ins Deutsche:' 
+            : 'Übersetze ins Englische:';
+        document.getElementById('typing-input').value = '';
+        document.getElementById('typing-result').style.display = 'none';
+        document.getElementById('typing-check').style.display = 'inline-block';
+        document.getElementById('typing-next').style.display = 'none';
+        
+        const progress = ((currentTypingQuestion) / typingQuestions.length) * 100;
+        document.getElementById('typing-progress-bar').style.width = `${progress}%`;
+        document.getElementById('typing-score').textContent = `Punkte: ${typingScore}/${currentTypingQuestion}`;
+    }
+    
+    function checkTypingAnswer() {
+        const userAnswer = document.getElementById('typing-input').value.trim();
+        const correctAnswer = typingQuestions[currentTypingQuestion].correctAnswer;
+        const resultElement = document.getElementById('typing-result');
+        
+        if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+            resultElement.textContent = 'Richtig!';
+            resultElement.className = 'result correct';
+            typingScore++;
+        } else {
+            resultElement.textContent = `Falsch. Die richtige Antwort ist: ${correctAnswer}`;
+            resultElement.className = 'result incorrect';
+        }
+        
+        resultElement.style.display = 'block';
+        document.getElementById('typing-check').style.display = 'none';
+        document.getElementById('typing-next').style.display = 'inline-block';
+        document.getElementById('typing-score').textContent = `Punkte: ${typingScore}/${currentTypingQuestion + 1}`;
+    }
+    
+    function nextTypingQuestion() {
+        currentTypingQuestion++;
+        
+        if (currentTypingQuestion < typingQuestions.length) {
+            displayTypingQuestion();
+        } else {
+            const container = document.querySelector('#quiz-typing .question-card');
+            const scorePercentage = Math.round((typingScore / typingQuestions.length) * 100);
+            
+            container.innerHTML = `
+                <h3>Quiz beendet!</h3>
+                <p>Du hast ${typingScore} von ${typingQuestions.length} Fragen richtig beantwortet (${scorePercentage}%).</p>
+                <div class="btn-group">
+                    <button class="btn" onclick="resetQuiz('typing')">Quiz neu starten</button>
+                </div>
+            `;
+        }
+    }
+
+    // Quiz zurücksetzen
+    function resetQuiz(quizType) {
+        if (quizType === 'multiple-choice') {
+            createMultipleChoiceQuestions();
+            currentMCQuestion = 0;
+            mcScore = 0;
+            displayMCQuestion();
+            document.getElementById('mc-next').style.display = 'inline-block';
+        } else if (quizType === 'typing') {
+            createTypingQuestions();
+            currentTypingQuestion = 0;
+            typingScore = 0;
+            displayTypingQuestion();
+        }
+    }
+
+    // Rechtliche Hinweise
+    function showLegal(id) {
+        document.querySelectorAll('.legal-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+    
+    function hideLegal() {
+        document.querySelectorAll('.legal-content').forEach(el => el.classList.remove('active'));
+    }
+
+    // Initialisierung
+    document.addEventListener('DOMContentLoaded', () => {
+        displayVocabularyList();
+        setupFlashcards();
+        createMultipleChoiceQuestions();
+        displayMCQuestion();
+        createTypingQuestions();
+        displayTypingQuestion();
+    });
+    </script>
+</body>
+</html>
